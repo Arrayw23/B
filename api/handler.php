@@ -74,26 +74,55 @@ if (!empty($query)) {
 }
 
 // Prepare cURL
-$ch = curl_init($upstreamUrl);
+$ch = function_exists('curl_init') ? curl_init($upstreamUrl) : null;
 $headers = [
     'Content-Type: application/json',
     'X-Api-Key: ' . $_SESSION['api_key'],
 ];
 
-curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+if ($ch) {
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 
-if (in_array($method, ['POST', 'PUT', 'DELETE'], true)) {
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+    if (in_array($method, ['POST', 'PUT', 'DELETE'], true)) {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+    }
+
+    $responseBody = curl_exec($ch);
+    $errno = curl_errno($ch);
+    $error = curl_error($ch);
+    $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($errno !== 0) {
+        http_response_code(502);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Upstream connection failed',
+            'detail' => $error,
+        ]);
+        exit;
+    }
+} else {
+    // Fallback to file_get_contents for environments without cURL
+    $opts = [
+        'http' => [
+            'method' => $method,
+            'header' => implode("\r\n", $headers) . "\r\n",
+            'content' => in_array($method, ['POST', 'PUT', 'DELETE'], true) ? json_encode($body) : '',
+            'ignore_errors' => true,
+            'timeout' => 30,
+        ],
+    ];
+    $context = stream_context_create($opts);
+    $responseBody = @file_get_contents($upstreamUrl, false, $context);
+    $httpCode = 0;
+    if (isset($http_response_header) && preg_match('#HTTP/\S+\s(\d{3})#', $http_response_header[0], $m)) {
+        $httpCode = (int)$m[1];
+    }
 }
-
-$responseBody = curl_exec($ch);
-$errno = curl_errno($ch);
-$error = curl_error($ch);
-$httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
 
 if ($errno !== 0) {
     http_response_code(502);

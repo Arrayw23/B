@@ -34,7 +34,7 @@ session_start();
 
 // If already authenticated, go to dashboard
 if (!empty($_SESSION['auth']) && !empty($_SESSION['api_key'])) {
-    header('Location: /dashboard.php');
+    header('Location: dashboard.php');
     exit;
 }
 
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['auth'] = true;
         $_SESSION['api_key'] = $apiKey;
         $_SESSION['username'] = $username;
-        header('Location: /dashboard.php');
+        header('Location: dashboard.php');
         exit;
     }
 }
@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               </div>
             <?php endif; ?>
 
-            <form method="post" action="/index.php" class="space-y-4">
+            <form method="post" action="index.php" class="space-y-4">
               <div>
                 <label for="username" class="block text-sm mb-1">Username</label>
                 <input id="username" name="username" type="text" required autocomplete="username"

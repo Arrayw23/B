@@ -32,12 +32,12 @@ if (isset($_GET['logout'])) {
         setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
     }
     session_destroy();
-    header('Location: /index.php');
+    header('Location: index.php');
     exit;
 }
 
 if (empty($_SESSION['auth']) || empty($_SESSION['api_key'])) {
-    header('Location: /index.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -96,7 +96,7 @@ $username = isset($_SESSION['username']) ? (string)$_SESSION['username'] : 'user
                 </svg>
               </label>
               <ul tabindex="0" class="menu dropdown-content bg-slate-900 rounded-box z-[1] mt-2 w-52 p-2 shadow border border-slate-800">
-                <li><a href="/dashboard.php?logout=1">Logout</a></li>
+                <li><a href="dashboard.php?logout=1">Logout</a></li>
               </ul>
             </div>
           </div>
@@ -203,6 +203,6 @@ $username = isset($_SESSION['username']) ? (string)$_SESSION['username'] : 'user
       </div>
     </div>
 
-    <script src="/assets/app.js"></script>
+    <script src="assets/app.js"></script>
   </body>
 </html>
